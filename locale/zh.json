@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Mailgun",
+    "description": "通过 Mailgun HTTP API 发送邮件，可按邮件跟踪打开与点击，并读取投递与互动事件、发信域名和域名计数。"
+  }
+}

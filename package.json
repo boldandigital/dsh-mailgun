@@ -1,0 +1,68 @@
+{
+  "name": "dsh-mailgun",
+  "description": "Send email through the Mailgun HTTP API with per-message open and click tracking, read the delivery and engagement events, list the sending domains and query the domain counters.",
+  "version": "0.1.2",
+  "type": "module",
+  "main": "lib/index.js",
+  "exports": {
+    ".": "./lib/index.js",
+    "./client": "./lib/client.js",
+    "./locale/*.json": "./locale/*.json",
+    "./icon": "./assets/icon.svg",
+    "./package.json": "./package.json"
+  },
+  "icon": "./assets/icon.svg",
+  "files": [
+    "lib",
+    "assets/icon.svg",
+    "locale/*.json",
+    "docs",
+    "cordis.patch.yml",
+    "README.md",
+    "LICENSE"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "immediately": true,
+      "inject": [
+        "@deepseek-ai/dsh-client-ui-settings-general",
+        "@deepseek-ai/dsh-client-locale"
+      ]
+    }
+  },
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "deepseek-harness",
+    "mailgun",
+    "email",
+    "transactional"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">=22",
+    "dsh": ">=0.2.2-rc.3"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.mjs"
+  },
+  "dependencies": {
+    "@deepseek-ai/schemastery": "~3.19.0"
+  },
+  "author": {
+    "name": "boldandigital",
+    "url": "https://github.com/boldandigital"
+  },
+  "homepage": "https://github.com/boldandigital/dsh-mailgun#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/boldandigital/dsh-mailgun.git"
+  },
+  "bugs": {
+    "url": "https://github.com/boldandigital/dsh-mailgun/issues"
+  }
+}

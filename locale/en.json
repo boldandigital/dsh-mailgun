@@ -1,0 +1,7 @@
+{
+  "meta": {
+    "title": "Mailgun",
+    "description": "Sends email through the Mailgun HTTP API with per-message open and click tracking, and reads the delivery and engagement events, the sending domains and the domain counters.",
+    "detail": "docs/DETAIL.md"
+  }
+}

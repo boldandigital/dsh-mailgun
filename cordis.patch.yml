@@ -1,0 +1,17 @@
+# Mailgun API tools.
+#
+# The accounts themselves are managed on the harness Settings page
+# (Settings -> Mailgun): each one carries its sending domain, its region and
+# its From address, and its own API key in the harness credential store.
+#
+# The values below are only the fallbacks for an install that keeps one
+# account in the patch instead of the settings page, and the name of the
+# credential reference a single-account install reads its key from.
+- insert:
+    - id: mailgun
+      name: 'dsh-mailgun'
+      config:
+        domain: ''
+        region: us
+        from: ''
+        apiKeyRef: MAILGUN_API_KEY
