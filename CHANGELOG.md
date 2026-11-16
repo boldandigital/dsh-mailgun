@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.8
+
+The event filter matched nothing. A comma-separated list of event names was
+sent as one query parameter, and Mailgun read `?event=accepted,delivered` as
+a single unknown event name, so every filtered read came back empty while
+the unfiltered read worked. The list is now sent as one parameter per name,
+which is what Mailgun reads as a filter.
+
 ## 0.1.7
 
 The settings page did not show the accounts that were already saved. The
