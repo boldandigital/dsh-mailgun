@@ -1,5 +1,27 @@
 # Changelog
 
+## 0.1.6
+
+The settings section saved nothing. Every control in it called a `useState`
+pair as if it were the setter, which threw a TypeError inside the click
+handler before any request left the browser: "Add Mailgun account" never
+opened the form, and "Save" on an account card never sent anything — without
+an error message, because the throw happened before the request was made.
+The value and the setter are now two separate bindings.
+
+"Test connection" reported zero sending domains: the backend answers a test
+with the domain list beside the fresh account list, and the client read the
+wrong half of that answer.
+
+"Make default" failed with "An account needs at least a label or a sending
+domain": the action names only the account id, and the backend read that as
+an empty account. It now takes the stored account as the base, so the
+account keeps its fields.
+
+The add form also updates one field at a time now. Two edits before the next
+render could overwrite each other with a stale copy of the draft, which lost
+a typed value.
+
 ## 0.1.5
 
 Added this changelog, and the repository now carries the CI check and the
