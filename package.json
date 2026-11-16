@@ -1,7 +1,7 @@
 {
   "name": "dsh-mailgun",
   "description": "Send email through the Mailgun HTTP API with per-message open and click tracking, read the delivery and engagement events, list the sending domains and query the domain counters.",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "type": "module",
   "main": "lib/index.js",
   "exports": {

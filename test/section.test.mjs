@@ -104,6 +104,7 @@ function elementsOf(node) {
  * @returns {string} its text.
  */
 function textOf(element) {
+	if (element === null || element === undefined) return '';
 	const children = element.props?.children ?? element.children;
 	if (children === undefined || children === null) return '';
 	if (typeof children === 'string') return children;
@@ -114,10 +115,22 @@ function textOf(element) {
 /**
  * The account list the stubbed backend reports.
  *
+ * @param {object[]} accounts - the accounts in the list.
  * @returns {object} the view.
  */
-function viewStub() {
-	return { accounts: [], defaultAccount: '', credentialRef: 'MAILGUN_API_KEY', defaults: {} };
+function viewStub(accounts = []) {
+	return { accounts, defaultAccount: '', credentialRef: 'MAILGUN_API_KEY', defaults: {} };
+}
+
+/**
+ * One account as the backend reports it.
+ *
+ * @param {string} id - the account id.
+ * @param {string} label - the label.
+ * @returns {object} the account.
+ */
+function accountStub(id, label) {
+	return { id, label, domain: id + '.example', region: 'us', from: '', senderName: '', hasKey: true };
 }
 
 /**
@@ -125,7 +138,7 @@ function viewStub() {
  *
  * @returns {Promise<object>} the tree, the requests and the flush helper.
  */
-async function renderSection() {
+async function renderSection(options = {}) {
 	const { React, flush, reset, setRerender } = reactStub();
 	const factory = await loadFactory();
 	const module = factory((id) => {
@@ -134,12 +147,17 @@ async function renderSection() {
 	});
 
 	const requests = [];
+	const list = options.accounts ?? [];
 	globalThis.fetch = (url, init) => {
 		requests.push({ url, init });
 		const body = init?.body ? JSON.parse(init.body) : null;
-		const value = body?.action === 'test'
-			? { ok: true, domains: [{ name: 'mg.example' }], keyConfigured: true, view: viewStub() }
-			: { ok: true, id: 'example', hasKey: false, view: viewStub() };
+		if (body === null) {
+			// The list is read with GET; the answer carries the account list.
+			return Promise.resolve({ json: () => Promise.resolve({ ok: true, value: viewStub(list) }) });
+		}
+		const value = body.action === 'test'
+			? { ok: true, domains: [{ name: 'mg.example' }], keyConfigured: true, view: viewStub(list) }
+			: { ok: true, id: 'example', hasKey: false, view: viewStub(list) };
 		return Promise.resolve({ json: () => Promise.resolve({ ok: true, value }) });
 	};
 
@@ -232,4 +250,73 @@ test('the "Make default" action keeps the fields of the account it names', async
 	finally {
 		rmSync(home, { recursive: true, force: true });
 	}
+});
+
+test('the saved accounts are listed, collapsed, and open on a click', async () => {
+	const accounts = [accountStub('hostsalt', 'HostSalt'), accountStub('gpl-love', 'GPL LOVE')];
+	const harness = await renderSection({ accounts });
+	await new Promise((resolve) => setTimeout(resolve, 0));
+	harness.flush();
+
+	const buttons = () => elementsOf(harness.tree).filter((element) => element.type === 'button');
+	const headers = buttons().filter((button) => button.props.className === 'mgsec_head');
+	assert.equal(headers.length, 2, 'the saved accounts are not listed');
+	assert.equal(textOf(headers[0]).includes('HostSalt'), true, 'the account label is missing');
+
+	// Collapsed is the standard state: the form of an account is not open.
+	const inputs = elementsOf(harness.tree).filter((element) => element.type === 'input');
+	assert.equal(inputs.length, 0, 'an account opened itself');
+	assert.equal(buttons().some((button) => textOf(button) === 'Save'), false, 'a collapsed account still shows its form');
+
+	// Clicking the header opens that one account.
+	headers[0].props.onClick();
+	harness.flush();
+	const openInputs = elementsOf(harness.tree).filter((element) => element.type === 'input');
+	assert.equal(openInputs.length, 5, 'the account did not open');
+	assert.equal(buttons().some((button) => textOf(button) === 'Save'), true, 'the opened account has no form');
+
+	// The other account stays closed.
+	const openHeaders = buttons().filter((button) => button.props.className === 'mgsec_head');
+	assert.equal(openHeaders.filter((header) => header.props['aria-expanded'] === true).length, 1, 'more than one account is open');
+});
+
+test('a bare payload without the envelope is still read as the list', async () => {
+	const { React, flush, reset, setRerender } = reactStub();
+	const factory = await loadFactory();
+	const module = factory((id) => {
+		if (id === 'react') return React;
+		throw new Error(`unexpected require("${id}")`);
+	});
+	// An answer without the `{ ok, value }` envelope must not empty the list.
+	globalThis.fetch = () => Promise.resolve({
+		json: () => Promise.resolve(viewStub([accountStub('hostsalt', 'HostSalt')])),
+	});
+	const registered = [];
+	const injected = [];
+	const ctx = {
+		effect(fn) { return fn(); },
+		locale: {
+			register(ns, dicts) { this.dicts = { ns, dicts }; return () => {}; },
+			bind(ns) {
+				const dicts = this.dicts?.dicts ?? {};
+				const locale = dicts.en ?? {};
+				return (key) => locale[key] ?? key;
+			},
+		},
+		slots: {
+			inject(name, factoryFn) { injected.push({ name, factoryFn }); },
+			register(options, component) { registered.push({ options, component }); return () => {}; },
+		},
+	};
+	module.apply(ctx);
+	for (const entry of injected) entry.factoryFn();
+	const section = registered.find((entry) => entry.options.name === 'settings.section');
+	const t = ctx.locale.bind('dsh-mailgun.settings');
+	let tree = section.component({ t });
+	setRerender(() => { reset(); tree = section.component({ t }); });
+	await new Promise((resolve) => setTimeout(resolve, 0));
+	flush();
+
+	const headers = elementsOf(tree).filter((element) => element.type === 'button' && element.props.className === 'mgsec_head');
+	assert.equal(headers.length, 1, 'the list stayed empty');
 });

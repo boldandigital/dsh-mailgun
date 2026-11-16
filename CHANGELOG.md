@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.1.7
+
+The settings page did not show the accounts that were already saved. The
+connection route answered a read with the bare account list while every
+other answer — the save, and the raw web route — used the `{ ok, value }`
+envelope. The browser read the bare answer as a failure, so the list stayed
+empty and the page said "No Mailgun account yet" while the accounts sat in
+the store. The route now answers in the one envelope, and the browser
+accepts a bare payload too, so a different shape can never empty the list
+silently again. The list is also read back from the backend after every
+action, instead of trusting the answer of the action.
+
+An account is an accordion item now. The collapsed line carries the label,
+the sending domain and the badges, and the form opens when the line is
+clicked. Collapsed is the standard state, also for an account that was just
+added.
+
 ## 0.1.6
 
 The settings section saved nothing. Every control in it called a `useState`

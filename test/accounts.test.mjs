@@ -166,3 +166,30 @@ test('uniqueId keeps every taken id out of the way', () => {
 	assert.equal(uniqueId('alpha', ['alpha', 'alpha-2']), 'alpha-3');
 	assert.equal(uniqueId('', ['account-2']), 'account-3');
 });
+
+test('the connection route answers the account list in the same envelope as a save', async () => {
+	const { backend, home } = await backendStub();
+	try {
+		await backend.save({ action: 'save', account: { label: 'HostSalt', domain: 'mg.hostsalt.example' } });
+
+		const response = await backend.fetch(new Request('http://127.0.0.1/api/dsh-mailgun/settings'));
+		const body = await response.json();
+		assert.equal(body.ok, true, 'the list is not wrapped in the answer envelope');
+		assert.equal(Array.isArray(body.value.accounts), true, 'the list carries no accounts');
+		assert.equal(body.value.accounts[0].label, 'HostSalt');
+
+		// The save answers with the same envelope, so the browser reads one
+		// shape everywhere.
+		const saved = await backend.fetch(new Request('http://127.0.0.1/api/dsh-mailgun/settings', {
+			method: 'POST',
+			headers: { 'content-type': 'application/json' },
+			body: JSON.stringify({ action: 'save', account: { label: 'Second', domain: 'mg.second.example' } }),
+		}));
+		const savedBody = await saved.json();
+		assert.equal(savedBody.ok, true);
+		assert.equal(savedBody.value.view.accounts.length, 2);
+	}
+	finally {
+		rmSync(home, { recursive: true, force: true });
+	}
+});
