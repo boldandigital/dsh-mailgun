@@ -13,8 +13,13 @@ send-only sending service out of the account list that `dsh-email` manages.
 
 One Mailgun account is one API key and one sending domain, so the plugin
 holds a list of accounts rather than a single one. Add them on the harness
-**Settings → Mailgun** page: one card per account, each with a label, the
+**Settings → Mailgun** page: one row per account, each with a label, the
 sending domain, the region, the From address and the API key.
+
+A saved account is an **accordion item**: the collapsed line carries the
+label, the sending domain and the badges, and the form opens when the line
+is clicked. Collapsed is the standard state, also for an account that was
+just added.
 
 The **Add Mailgun account** form stays open after it saves, so a second
 account is one more click away instead of another trip through the button.
@@ -47,13 +52,28 @@ another one.
 
 ## Install
 
-The plugin is a local package in this workspace. It is registered in the
-`desktop` profile as a bundle:
+From the Plugin Manager's **Discover** tab, or directly from npm:
+
+```sh
+dsh plugin --profile web add dsh-mailgun
+```
+
+The package is also on npm as [`dsh-mailgun`](https://www.npmjs.com/package/dsh-mailgun),
+so `npm install dsh-mailgun` works too. To run it straight from a checkout
+instead:
+
+```sh
+dsh plugin --profile desktop add "link:/path/to/dsh-mailgun"
+```
+
+### From a checkout
+
+The plugin can also be registered as a local bundle in a profile:
 
 ```yaml
 # ~/.dsh/profiles/desktop/package.json
 "dependencies": {
-  "dsh-mailgun": "link:/Users/lars/Documents/deepseek-harness/default-workspace/dsh-mailgun"
+  "dsh-mailgun": "link:/path/to/dsh-mailgun"
 },
 "dsh": { "profile": { "bundles": [ ..., "dsh-mailgun" ] } }
 ```
